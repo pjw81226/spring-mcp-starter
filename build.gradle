@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.jang.mcp'
@@ -18,24 +17,21 @@ repositories {
 }
 
 ext {
-    springBootVersion = '3.4.4'
     mcpSdkVersion = '1.1.0'
-}
-
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-    }
+    // Minimum compatible Spring Boot version for annotation processors only (build-time)
+    // 어노테이션 프로세서 빌드 시에만 사용되는 최소 호환 Spring Boot 버전
+    springBootVersion = '3.3.0'
 }
 
 dependencies {
-    // Spring Boot (provided by the host application)
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
+    // Spring Boot (provided by the host application - no version pinned)
+    // 호스트 앱이 Spring Boot 버전을 결정한다 (3.x / 4.x 모두 호환)
+    compileOnly "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    compileOnly "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
 
-    // Annotation processor for auto-configuration metadata
-    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    // Annotation processor for auto-configuration metadata (build-time only)
+    annotationProcessor "org.springframework.boot:spring-boot-autoconfigure-processor:${springBootVersion}"
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
 
     // MCP Java SDK (core + Jackson 3)
     implementation "io.modelcontextprotocol.sdk:mcp:${mcpSdkVersion}"
@@ -46,11 +42,11 @@ dependencies {
     // OpenAPI spec extraction (optional - provided by host app)
     compileOnly 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
-    // Jackson (provided by Spring Boot)
-    compileOnly 'com.fasterxml.jackson.core:jackson-databind'
+    // Jackson (provided by Spring Boot at runtime)
+    compileOnly 'com.fasterxml.jackson.core:jackson-databind:2.18.3'
 
     // Test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
