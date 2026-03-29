@@ -1,5 +1,7 @@
 # Spring Boot MCP Starter
 
+[![](https://jitpack.io/v/pjw81226/spring-mcp-starter.svg)](https://jitpack.io/#pjw81226/spring-mcp-starter)
+
 **English** | [한국어](README.ko.md)
 
 A lightweight Spring Boot starter that automatically configures an MCP (Model Context Protocol) server with SSE transport.
@@ -30,18 +32,43 @@ No Spring AI dependency required -- just the official `mcp-sdk-java`.
 ### 1. Add the dependency
 
 **Gradle**
+
+Add the JitPack repository to your root `settings.gradle`:
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Then add the dependency:
 ```groovy
 dependencies {
-    implementation 'com.jang.mcp:spring-automcp-library:0.0.1-SNAPSHOT'
+    implementation 'com.github.pjw81226:spring-mcp-starter:v0.0.1'
 }
 ```
 
 **Maven**
+
+Add the JitPack repository:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+Then add the dependency:
 ```xml
 <dependency>
-    <groupId>com.jang.mcp</groupId>
-    <artifactId>spring-automcp-library</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>com.github.pjw81226</groupId>
+    <artifactId>spring-mcp-starter</artifactId>
+    <version>v0.0.1</version>
 </dependency>
 ```
 

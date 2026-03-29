@@ -1,5 +1,7 @@
 # Spring Boot MCP Starter
 
+[![](https://jitpack.io/v/pjw81226/spring-mcp-starter.svg)](https://jitpack.io/#pjw81226/spring-mcp-starter)
+
 [English](README.md) | **한국어**
 
 Spring Boot 애플리케이션에 추가하기만 하면 MCP(Model Context Protocol) 서버를 SSE 방식으로 자동 구성해주는 초경량 스타터 라이브러리입니다.
@@ -30,18 +32,43 @@ Spring AI 의존성 없이 공식 `mcp-sdk-java`만 사용합니다.
 ### 1. 의존성 추가
 
 **Gradle**
+
+루트 `settings.gradle`에 JitPack 저장소를 추가합니다:
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+그 다음 의존성을 추가합니다:
 ```groovy
 dependencies {
-    implementation 'com.jang.mcp:spring-automcp-library:0.0.1-SNAPSHOT'
+    implementation 'com.github.pjw81226:spring-mcp-starter:v0.0.1'
 }
 ```
 
 **Maven**
+
+JitPack 저장소를 추가합니다:
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+그 다음 의존성을 추가합니다:
 ```xml
 <dependency>
-    <groupId>com.jang.mcp</groupId>
-    <artifactId>spring-automcp-library</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>com.github.pjw81226</groupId>
+    <artifactId>spring-mcp-starter</artifactId>
+    <version>v0.0.1</version>
 </dependency>
 ```
 
