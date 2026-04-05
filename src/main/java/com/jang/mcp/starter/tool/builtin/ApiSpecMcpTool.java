@@ -35,11 +35,6 @@ public class ApiSpecMcpTool implements McpToolProvider<Void> {
     }
 
     @Override
-    public Class<Void> getParameterType() {
-        return null;
-    }
-
-    @Override
     public String execute(Void params) {
         try {
             String spec = restTemplate.getForObject(apiDocsUrl, String.class);

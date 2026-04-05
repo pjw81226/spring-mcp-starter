@@ -31,14 +31,18 @@ public interface McpToolProvider<T> {
 
     /**
      * Returns the Record class that defines the tool's parameters.
-     * Returns null or Void.class if the tool has no parameters.
+     * Override this method to specify the parameter type for your tool.
+     * Returns null by default for parameterless tools.
      * Apply @McpParameter to the Record's fields to add descriptions.
      * 
      * 도구의 파라미터를 정의하는 Record 클래스를 반환한다.
-     * 파라미터가 없으면 null 또는 Void.class를 반환한다.
+     * 파라미터가 있는 도구는 이 메서드를 오버라이드하여 타입을 지정한다.
+     * 파라미터가 없는 도구는 기본값(null)을 사용한다.
      * Record의 필드에 @McpParameter를 적용하여 설명을 추가한다.
      */
-    Class<T> getParameterType();
+    default Class<T> getParameterType() {
+        return null;
+    }
 
     /**
      * Executes the tool with the typed parameter object.
