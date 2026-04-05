@@ -5,6 +5,7 @@ import com.jang.mcp.starter.controller.McpSseTransportFactory;
 import com.jang.mcp.starter.tool.McpToolProvider;
 import com.jang.mcp.starter.tool.builtin.ApiSpecMcpTool;
 import com.jang.mcp.starter.tool.builtin.BackendLogMcpTool;
+import com.jang.mcp.starter.util.ArgumentConverter;
 import com.jang.mcp.starter.util.McpSchemaGenerator;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpSyncServer;
@@ -134,7 +135,7 @@ public class McpAutoConfiguration {
                 try {
                     Object params;
                     try {
-                        params = convertArguments(request.arguments(), paramType, objectMapper);
+                        params = ArgumentConverter.convert(request.arguments(), paramType, objectMapper);
                     } catch (Exception e) {
                         log.error("Argument conversion failed for tool '{}': {}", provider.getName(), e.getMessage());
                         return McpSchema.CallToolResult.builder()
@@ -166,23 +167,5 @@ public class McpAutoConfiguration {
 
         return server;
     }
-
-    /**
-     * Converts raw argument map to the typed parameter object.
-     * Returns null for parameterless tools (Void type or null paramType).
-     * Throws IllegalArgumentException if arguments are missing for a parameterized tool.
-     *
-     * 원시 인자 맵을 타입이 지정된 파라미터 객체로 변환한다.
-     * 파라미터가 없는 도구(Void 또는 null)에는 null을 반환한다.
-     * 파라미터가 필요한 도구에 인자가 누락되면 IllegalArgumentException을 던진다.
-     */
-    private Object convertArguments(Map<String, Object> arguments, Class<?> paramType, ObjectMapper objectMapper) {
-        if (paramType == null || paramType == Void.class) {
-            return null;
-        }
-        if (arguments == null) {
-            throw new IllegalArgumentException("Missing arguments for tool that expects parameters of type " + paramType.getSimpleName());
-        }
-        return objectMapper.convertValue(arguments, paramType);
-    }
 }
+

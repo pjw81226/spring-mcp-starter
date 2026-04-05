@@ -1,4 +1,4 @@
-package com.jang.mcp.starter.autoconfigure;
+package com.jang.mcp.starter.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jang.mcp.starter.annotation.McpParameter;
@@ -12,11 +12,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for the argument conversion logic used in McpAutoConfiguration.
- * Tests the ObjectMapper-based conversion behavior directly
- * since convertArguments() is a private method.
+ * Tests for ArgumentConverter.convert() — the production argument conversion logic.
  */
-class ConvertArgumentsTest {
+class ArgumentConverterTest {
 
     private ObjectMapper objectMapper;
 
@@ -30,19 +28,19 @@ class ConvertArgumentsTest {
         objectMapper = new ObjectMapper();
     }
 
-    // -- Parameterless tool behavior (null / Void) --
+    // -- Parameterless tool behavior --
 
     @Test
-    @DisplayName("Parameterless tools should receive null — null paramType")
+    @DisplayName("null paramType returns null")
     void nullParamTypeReturnsNull() {
-        Object result = convertArguments(Map.of("key", "value"), null, objectMapper);
+        Object result = ArgumentConverter.convert(Map.of("key", "value"), null, objectMapper);
         assertNull(result);
     }
 
     @Test
-    @DisplayName("Parameterless tools should receive null — Void paramType")
+    @DisplayName("Void paramType returns null")
     void voidParamTypeReturnsNull() {
-        Object result = convertArguments(Map.of("key", "value"), Void.class, objectMapper);
+        Object result = ArgumentConverter.convert(Map.of("key", "value"), Void.class, objectMapper);
         assertNull(result);
     }
 
@@ -55,7 +53,7 @@ class ConvertArgumentsTest {
         args.put("name", "Alice");
         args.put("count", 42);
 
-        Object result = convertArguments(args, TestParams.class, objectMapper);
+        Object result = ArgumentConverter.convert(args, TestParams.class, objectMapper);
 
         assertInstanceOf(TestParams.class, result);
         TestParams params = (TestParams) result;
@@ -69,7 +67,7 @@ class ConvertArgumentsTest {
         Map<String, Object> args = new HashMap<>();
         args.put("name", "Bob");
 
-        Object result = convertArguments(args, TestParams.class, objectMapper);
+        Object result = ArgumentConverter.convert(args, TestParams.class, objectMapper);
 
         assertInstanceOf(TestParams.class, result);
         TestParams params = (TestParams) result;
@@ -82,7 +80,7 @@ class ConvertArgumentsTest {
     void emptyArguments() {
         Map<String, Object> args = new HashMap<>();
 
-        Object result = convertArguments(args, TestParams.class, objectMapper);
+        Object result = ArgumentConverter.convert(args, TestParams.class, objectMapper);
 
         assertInstanceOf(TestParams.class, result);
         TestParams params = (TestParams) result;
@@ -96,7 +94,7 @@ class ConvertArgumentsTest {
     @DisplayName("null arguments with non-Void paramType throws IllegalArgumentException")
     void nullArgumentsThrows() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                convertArguments(null, TestParams.class, objectMapper));
+                ArgumentConverter.convert(null, TestParams.class, objectMapper));
 
         assertTrue(ex.getMessage().contains("Missing arguments"));
         assertTrue(ex.getMessage().contains("TestParams"));
@@ -109,22 +107,7 @@ class ConvertArgumentsTest {
         args.put("name", "Alice");
         args.put("count", "not-a-number");
 
-        // ObjectMapper should throw when "not-a-number" can't be converted to Integer
         assertThrows(IllegalArgumentException.class, () ->
-                convertArguments(args, TestParams.class, objectMapper));
-    }
-
-    /**
-     * Mirror of McpAutoConfiguration.convertArguments() logic.
-     * Tested here to verify correctness without requiring full Spring context.
-     */
-    private Object convertArguments(Map<String, Object> arguments, Class<?> paramType, ObjectMapper mapper) {
-        if (paramType == null || paramType == Void.class) {
-            return null;
-        }
-        if (arguments == null) {
-            throw new IllegalArgumentException("Missing arguments for tool that expects parameters of type " + paramType.getSimpleName());
-        }
-        return mapper.convertValue(arguments, paramType);
+                ArgumentConverter.convert(args, TestParams.class, objectMapper));
     }
 }
