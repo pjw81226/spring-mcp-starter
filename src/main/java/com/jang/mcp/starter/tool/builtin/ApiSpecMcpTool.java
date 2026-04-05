@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
 /**
  * Built-in MCP tool that fetches the OpenAPI (Swagger) specification from the host application.
  * Requires springdoc-openapi to be available in the host application.
@@ -14,7 +12,7 @@ import java.util.Map;
  * 호스트 애플리케이션에서 OpenAPI(Swagger) 스펙을 가져오는 내장 MCP 도구.
  * 호스트 앱에 springdoc-openapi가 설정되어 있어야 한다.
  */
-public class ApiSpecMcpTool implements McpToolProvider {
+public class ApiSpecMcpTool implements McpToolProvider<Void> {
 
     private static final Logger log = LoggerFactory.getLogger(ApiSpecMcpTool.class);
 
@@ -37,12 +35,12 @@ public class ApiSpecMcpTool implements McpToolProvider {
     }
 
     @Override
-    public Class<?> getParameterType() {
-        return null; // No parameters needed
+    public Class<Void> getParameterType() {
+        return null;
     }
 
     @Override
-    public String execute(Map<String, Object> arguments) {
+    public String execute(Void params) {
         try {
             String spec = restTemplate.getForObject(apiDocsUrl, String.class);
             if (spec == null || spec.isBlank()) {
@@ -55,3 +53,4 @@ public class ApiSpecMcpTool implements McpToolProvider {
         }
     }
 }
+

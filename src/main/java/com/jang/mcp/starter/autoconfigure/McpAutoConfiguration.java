@@ -1,5 +1,6 @@
 package com.jang.mcp.starter.autoconfigure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jang.mcp.starter.controller.McpSseTransportFactory;
 import com.jang.mcp.starter.tool.McpToolProvider;
 import com.jang.mcp.starter.tool.builtin.ApiSpecMcpTool;
@@ -24,10 +25,12 @@ import java.util.Map;
  * Spring Boot Auto-Configuration that wires up the MCP server.
  * Collects all McpToolProvider beans, generates JSON schemas, and registers tools
  * with the MCP server via SSE transport.
+ * Uses ObjectMapper to automatically convert raw JSON arguments into typed parameter objects.
  *
  * MCP 서버를 자동 구성하는 스프링 부트 Auto-Configuration.
  * 모든 McpToolProvider 빈을 수집하고, JSON 스키마를 생성하고,
  * SSE Transport를 통해 MCP 서버에 도구를 등록한다.
+ * ObjectMapper를 사용하여 JSON 인자를 타입이 지정된 파라미터 객체로 자동 변환한다.
  */
 @AutoConfiguration
 @ConditionalOnProperty(prefix = "mcp.server", name = "enabled", havingValue = "true", matchIfMissing = true)
@@ -89,15 +92,18 @@ public class McpAutoConfiguration {
      * Creates and starts the MCP sync server.
      * Collects all McpToolProvider beans, converts their parameters to JSON Schema,
      * and registers them as MCP tools.
+     * Raw JSON arguments are automatically converted to typed objects via ObjectMapper.
      *
      * MCP 동기 서버를 생성하고 시작한다.
      * 모든 McpToolProvider 빈을 수집하고, 파라미터를 JSON Schema로 변환하여 MCP 도구로 등록한다.
+     * ObjectMapper를 통해 JSON 인자를 타입 객체로 자동 변환한다.
      */
     @Bean
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public McpSyncServer mcpSyncServer(
             HttpServletSseServerTransportProvider transportProvider,
-            List<McpToolProvider> toolProviders,
+            List<McpToolProvider<?>> toolProviders,
+            ObjectMapper objectMapper,
             McpProperties properties) {
 
         var serverSpec = McpServer.sync(transportProvider)
@@ -122,9 +128,22 @@ public class McpAutoConfiguration {
                     .inputSchema(inputSchema)
                     .build();
 
+            Class<?> paramType = provider.getParameterType();
+
             serverSpec.toolCall(tool, (exchange, request) -> {
                 try {
-                    String result = provider.execute(request.arguments());
+                    Object params;
+                    try {
+                        params = convertArguments(request.arguments(), paramType, objectMapper);
+                    } catch (Exception e) {
+                        log.error("Argument conversion failed for tool '{}': {}", provider.getName(), e.getMessage());
+                        return McpSchema.CallToolResult.builder()
+                                .addTextContent("Error: Failed to convert arguments for tool '" + provider.getName() + "': " + e.getMessage())
+                                .isError(true)
+                                .build();
+                    }
+
+                    String result = provider.execute(params);
                     return McpSchema.CallToolResult.builder()
                             .addTextContent(result)
                             .build();
@@ -146,5 +165,24 @@ public class McpAutoConfiguration {
                 toolProviders.size(), properties.getBaseUrl() + properties.getSseEndpoint());
 
         return server;
+    }
+
+    /**
+     * Converts raw argument map to the typed parameter object.
+     * Returns null for parameterless tools (Void type or null paramType).
+     * Throws IllegalArgumentException if arguments are missing for a parameterized tool.
+     *
+     * 원시 인자 맵을 타입이 지정된 파라미터 객체로 변환한다.
+     * 파라미터가 없는 도구(Void 또는 null)에는 null을 반환한다.
+     * 파라미터가 필요한 도구에 인자가 누락되면 IllegalArgumentException을 던진다.
+     */
+    private Object convertArguments(Map<String, Object> arguments, Class<?> paramType, ObjectMapper objectMapper) {
+        if (paramType == null || paramType == Void.class) {
+            return null;
+        }
+        if (arguments == null) {
+            throw new IllegalArgumentException("Missing arguments for tool that expects parameters of type " + paramType.getSimpleName());
+        }
+        return objectMapper.convertValue(arguments, paramType);
     }
 }

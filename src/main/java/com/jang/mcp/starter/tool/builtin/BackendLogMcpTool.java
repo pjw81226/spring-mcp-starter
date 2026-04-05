@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Built-in MCP tool that reads the tail of the application log file.
@@ -20,7 +19,7 @@ import java.util.Map;
  * 애플리케이션 로그 파일의 마지막 N줄을 읽는 내장 MCP 도구.
  * AI 에이전트가 런타임 에러를 진단하고 애플리케이션 동작을 모니터링하는 데 유용하다.
  */
-public class BackendLogMcpTool implements McpToolProvider {
+public class BackendLogMcpTool implements McpToolProvider<BackendLogMcpTool.Params> {
 
     private static final Logger log = LoggerFactory.getLogger(BackendLogMcpTool.class);
     private static final int DEFAULT_LINES = 50;
@@ -53,19 +52,15 @@ public class BackendLogMcpTool implements McpToolProvider {
     }
 
     @Override
-    public Class<?> getParameterType() {
+    public Class<Params> getParameterType() {
         return Params.class;
     }
 
     @Override
-    public String execute(Map<String, Object> arguments) {
+    public String execute(Params params) {
         int lines = DEFAULT_LINES;
-        if (arguments != null && arguments.containsKey("lines")) {
-            try {
-                lines = ((Number) arguments.get("lines")).intValue();
-            } catch (Exception e) {
-                log.warn("Invalid 'lines' parameter, using default: {}", DEFAULT_LINES);
-            }
+        if (params != null && params.lines() != null) {
+            lines = params.lines();
         }
         lines = Math.min(Math.max(lines, 1), MAX_LINES);
 
@@ -97,4 +92,3 @@ public class BackendLogMcpTool implements McpToolProvider {
         }
     }
 }
-
