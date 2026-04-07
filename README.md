@@ -1,6 +1,8 @@
 # Spring Boot MCP Starter
 
-[![](https://jitpack.io/v/pjw81226/spring-mcp-starter.svg)](https://jitpack.io/#pjw81226/spring-mcp-starter)
+[![JitPack](https://jitpack.io/v/pjw81226/spring-mcp-starter.svg)](https://jitpack.io/#pjw81226/spring-mcp-starter)
+[![Java 17+](https://img.shields.io/badge/Java-17%2B-blue)](https://github.com/pjw81226/spring-mcp-starter)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **English** | [한국어](README.ko.md)
 
