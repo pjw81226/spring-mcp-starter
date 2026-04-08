@@ -2,6 +2,8 @@ package com.jang.mcp.starter.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+
 /**
  * Configuration properties for the MCP server.
  * Bind to properties prefixed with "mcp.server" in application.yml/properties.
@@ -72,6 +74,18 @@ public class McpProperties {
      */
     private String apiDocsUrl;
 
+    /**
+     * Global timeout for tool execution. Default: 30 seconds.
+     * If a tool does not complete within this duration, the execution is cancelled
+     * and an error is returned to the MCP client.
+     * Individual tools can override this via {@code McpToolProvider.getTimeout()}.
+     *
+     * 도구 실행의 글로벌 타임아웃. 기본값: 30초.
+     * 이 시간 내에 도구가 완료되지 않으면 실행이 취소되고 MCP 클라이언트에 에러가 반환된다.
+     * 개별 도구는 {@code McpToolProvider.getTimeout()}으로 오버라이드할 수 있다.
+     */
+    private Duration toolTimeout = Duration.ofSeconds(30);
+
     // Getters and Setters
 
     public boolean isEnabled() {
@@ -136,5 +150,13 @@ public class McpProperties {
 
     public void setApiDocsUrl(String apiDocsUrl) {
         this.apiDocsUrl = apiDocsUrl;
+    }
+
+    public Duration getToolTimeout() {
+        return toolTimeout;
+    }
+
+    public void setToolTimeout(Duration toolTimeout) {
+        this.toolTimeout = toolTimeout;
     }
 }

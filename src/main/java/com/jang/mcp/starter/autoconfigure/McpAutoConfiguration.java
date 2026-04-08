@@ -19,8 +19,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Spring Boot Auto-Configuration that wires up the MCP server.
@@ -107,7 +111,7 @@ public class McpAutoConfiguration {
             ObjectMapper objectMapper,
             McpProperties properties) {
 
-        var serverSpec = McpServer.sync(transportProvider)
+        McpServer.SyncSpecification<McpServer.SingleSessionSyncSpecification> serverSpec = McpServer.sync(transportProvider)
                 .serverInfo(properties.getName(), properties.getVersion())
                 .capabilities(McpSchema.ServerCapabilities.builder()
                         .tools(false)
@@ -130,6 +134,9 @@ public class McpAutoConfiguration {
                     .build();
 
             Class<?> paramType = provider.getParameterType();
+            Duration timeout = provider.getTimeout() != null
+                    ? provider.getTimeout()
+                    : properties.getToolTimeout();
 
             serverSpec.toolCall(tool, (exchange, request) -> {
                 try {
@@ -144,14 +151,25 @@ public class McpAutoConfiguration {
                                 .build();
                     }
 
-                    String result = provider.execute(params);
+                    String result = CompletableFuture
+                            .supplyAsync(() -> provider.execute(params))
+                            .orTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS)
+                            .join();
                     return McpSchema.CallToolResult.builder()
                             .addTextContent(result)
                             .build();
                 } catch (Exception e) {
-                    log.error("Tool execution failed: {}", provider.getName(), e);
+                    Throwable cause = e.getCause() != null ? e.getCause() : e;
+                    if (cause instanceof TimeoutException) {
+                        log.error("Tool execution timed out after {} for tool '{}'", timeout, provider.getName());
+                        return McpSchema.CallToolResult.builder()
+                                .addTextContent("Error: Tool '" + provider.getName() + "' timed out after " + timeout.getSeconds() + " seconds")
+                                .isError(true)
+                                .build();
+                    }
+                    log.error("Tool execution failed: {}", provider.getName(), cause);
                     return McpSchema.CallToolResult.builder()
-                            .addTextContent("Error: " + e.getMessage())
+                            .addTextContent("Error: " + cause.getMessage())
                             .isError(true)
                             .build();
                 }

@@ -1,5 +1,7 @@
 package com.jang.mcp.starter.tool;
 
+import java.time.Duration;
+
 /**
  * Common interface for defining MCP tools.
  * Spring beans implementing this interface are automatically registered to the MCP server.
@@ -45,6 +47,22 @@ public interface McpToolProvider<T> {
     }
 
     /**
+     * Returns the timeout duration for this tool's execution.
+     * Returns null by default, which means the global timeout
+     * from {@code mcp.server.tool-timeout} will be used.
+     * Override this to set a per-tool timeout.
+     *
+     * 이 도구의 실행 타임아웃을 반환한다.
+     * 기본값은 null이며, {@code mcp.server.tool-timeout} 글로벌 설정이 사용된다.
+     * 도구별 타임아웃을 설정하려면 오버라이드한다.
+     *
+     * @return timeout duration, or null to use global default
+     */
+    default Duration getTimeout() {
+        return null;
+    }
+
+    /**
      * Executes the tool with the typed parameter object.
      * The framework automatically converts raw JSON arguments into the specified type.
      * For tools with no parameters (Void), this method receives null.
@@ -58,4 +76,3 @@ public interface McpToolProvider<T> {
      */
     String execute(T params);
 }
-
